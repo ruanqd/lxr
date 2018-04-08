@@ -1137,6 +1137,8 @@ while (my $thisline=<CODE>){
 	$lineno++;
 	chomp $thisline;
 	$thisline=~s/^\d{4}//;
+	#注释
+	$thisline=~s/\b__(init|exit)\b//;
 	#$lastline.=$thisline;
 	$last3line=	$lastline2.$lastline1.$thisline;
 	if ( $lastline2=~m#^\s*(inline|static|int|short|long|void|unsigned|signed|float|double)# ){
