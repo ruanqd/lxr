@@ -1148,7 +1148,7 @@ function showlist(pn)
 }
 
 
-$("#functionslist").click(function( ){
+$("#functionslist").dblclick(function( ){
 	pageno++;
 	if ( pageno>5)
 	{
