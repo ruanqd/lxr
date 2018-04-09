@@ -1041,11 +1041,20 @@ function getpreline(noderef){
 	*/
 	
 }
+
+function GetQueryString(name)
+{
+     var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+     var r = window.location.search.substr(1).match(reg);
+     if(r!=null)return  unescape(r[2]); return null;
+}
+
 function shownotesinfo(noderef) {
 	thisnode=$(noderef);
 	thisn=thisnode;
 	var lineno="";	
 	var reg = /\d{4}/;
+	var version=GetQueryString('v');
 	for (var i=0;i<100;i++){
 		t=thisn.prev().text();
 		if ( !t ){
@@ -1072,11 +1081,10 @@ function shownotesinfo(noderef) {
 			$("#noteinfo").css("display","block"); 
 			
 			//console.info(isshow+"show");
-			var indurl='http://192.168.200.100/lxr/ident1?v=1.0&_i='+tstr+'&_identdefonly=1&_lineno='+lineno+'&_url='+thisurl;
+			var indurl='ident1?v='+version+'&_i='+tstr+'&_identdefonly=1&_lineno='+lineno+'&_url='+thisurl;
 			console.info(indurl);
-			$.get(indurl,function(data,status){
-				
-				noteurl='http://192.168.200.100/lxr/source1'+data;
+			$.get(indurl,function(data,status){				
+				noteurl='source1'+data;
 				console.info(noteurl);
 				$("#frameinfo").attr("src",noteurl);
 			
@@ -1150,7 +1158,7 @@ function showlist(pn)
 
 $("#functionslist").dblclick(function( ){
 	pageno++;
-	if ( pageno>5)
+	if ( pageno>3)
 	{
 		pageno=0;
 	}
@@ -1167,7 +1175,7 @@ EOF
 sub printfunlist
 {
 	
-	my $basedir="/root/lxr-2.3.1/codes/1.0";
+	my $basedir="/root/lxr-2.3.1/codes/$releaseid";
 	my $baseurl="http://192.168.200.100/lxr/source/$pathname?v=1.0";
 	print "<div id='functionslist'><div id='nullnode'></div>\n";
 	open CODE,"$basedir/$pathname";

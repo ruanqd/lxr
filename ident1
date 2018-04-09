@@ -543,8 +543,8 @@ sub printident {
 	foreach my $d(@$retstr){
 		my ( $file,$lineno,$typestr)=@$d;
 		if ( $typestr=~m#$typekey#){
-			my $l=sprintf("%04d",$lineno);
-			my $res=$file."#".$l;
+			my $ln=sprintf("%04d",$lineno);
+			my $res=$file."?v=$releaseid".'#'.$ln;
 			print $res;
 			return;
 		}
@@ -567,7 +567,7 @@ sub getindtype
 	my $file=shift;
 	my $no=shift;
 	my $token=shift;
-	$file="/root/lxr-2.3.1/codes/1.0$file";	
+	$file="/root/lxr-2.3.1/codes/$releaseid$file";	
 	$no=~s/^0*//g;
 	open SRCFILE,"$file" or die "no such file,$file\n";
 	my $lineno=0;
