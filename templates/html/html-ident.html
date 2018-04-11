@@ -21,19 +21,7 @@
 -->
 $indexstate
 <h1>Identifier search</h1>
-<p>
-Type the full name of an identifier to look for 
-(a function name, variable name, typedef, etc).
-<br>
-Matches are case-sensitive.
-Check "Definitions only" to find only definitions of the symbol
-(unchecked, all references).
-<br>
-As a convenience,
-extra <span class="identline identapprox">999</span> line numbers denote
-<strong>case-insensitive</strong> occurrences
-(either belonging to a case-insensitive language or differing in case).
-</p>
+
 
 <form method="get" action="$varbtnaction">
 	<p>
@@ -101,4 +89,50 @@ $indexwarning{	<p class="error">
 One or more files may contain inaccurate references.
 	</p>
 }}
+</div>
+
+<script>
+var isshow=0;
+function shownotesinfo() {
+	if ( isshow){
+		isshow=0;
+		return leavenotesinfo();
+	}
+	isshow=1;
+	var target=event.target;
+	
+   if (target.tagName !== 'A') {
+      return;
+   }
+    var indurl=target.href;
+	indurl=indurl.replace("#","&_isinframe=1#");
+	var posx=event.pageX  +2;		
+	var posy=event.pageY + 10;
+	console.info(posx+":"+posy);
+	$("#noteinfo1").css("display", "none");
+	$("#noteinfo1").css("left", posx); 
+	$("#noteinfo1").css("top", "20px");
+	$("#noteinfo1").css("display","block"); 
+	//var indurl=$(this).find('.hover_in').attr("href");
+	console.info(indurl);
+	$("#frameinfo1").attr("src",indurl);
+}
+function leavenotesinfo( ) {
+	console.info("leave");
+	$("#frameinfo1").attr("src",'');
+	$("#noteinfo1").css("display", "none");	
+} 
+/*
+$('a').hover(function() {
+	var url= $(this).attr("href");
+	shownotesinfo(url);
+},function(){
+	leavenotesinfo( );
+}
+);
+*/
+
+</script>
+<div id="noteinfo1">
+<iframe src="" id="frameinfo1" class="noteiframe" height="100%" width="100%" frameborder=0></iframe> 
 </div>

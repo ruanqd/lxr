@@ -1070,8 +1070,8 @@ function shownotesinfo(noderef) {
 		hidenotesinfo();
 	}else{
 		var tstr=noderef.innerText||noderef.textContent;
-		var posx=event.offsetX +1;		
-		var posy=event.offsetY + 10;
+		var posx=event.pageX  +1;		
+		var posy=event.pageY + 10;
 		var thisurl=window.location.pathname;
 		clearTimeout(timer);
 		timer=setTimeout(function () { 			
@@ -1117,9 +1117,10 @@ function leavenotesinfo( ) {
 
 EOF
 
-	&printfunlist;
-
-print <<'EOF';
+	my $isinframe=$HTTP->{'param'}{'_isinframe'};
+	unless ($isinframe){
+		&printfunlist;
+		print <<'EOF';
 <script>
 var pageno=0;
 function getlinenum(){
@@ -1167,7 +1168,7 @@ $("#functionslist").dblclick(function( ){
 );
 </script> 
 EOF
-				
+}			
 	printfile(0);
 	makefooter($type);
 }
@@ -1176,7 +1177,7 @@ sub printfunlist
 {
 	
 	my $basedir="/root/lxr-2.3.1/codes/$releaseid";
-	my $baseurl="http://192.168.200.100/lxr/source/$pathname?v=1.0";
+	my $baseurl="http://192.168.200.100/lxr/source/$pathname?v=$releaseid";
 	print "<div id='functionslist'><div id='nullnode'></div>\n";
 	open CODE,"$basedir/$pathname";
 	my $last3line;
@@ -1186,7 +1187,22 @@ sub printfunlist
 	my $lineno=0;
 	my %funlist=();
 
-while (my $thisline=<CODE>){
+	my $sentence;
+	while (my $thisline=<CODE>){
+		$lineno++;
+		#chomp $thisline;
+		unless ($thisline=~m#;\s*#){
+			$sentence.=$thisline;
+			next;
+		}
+		if ( $sentence=~m/^\s*(?:(?:inline|static)\s+){0,2}(?!else|typedef|return)\w+\s+\*?\s*(\w+)\s*\([^0]+\)\s*{/m){
+			my $thisfun=$1;
+			my $linestr=sprintf("%04d",$lineno-2);
+			$funlist{$thisfun}=$linestr;
+		}	
+		$sentence="";
+	}
+while (my $thisline=<CODE>){last;
 	$lineno++;
 	chomp $thisline;
 	$thisline=~s/^\d{4}//;
@@ -1206,7 +1222,6 @@ while (my $thisline=<CODE>){
 	$lastline2=$lastline1;
 	$lastline1=$thisline;
 }
-
 foreach my $fn(sort (keys %funlist)){
 	my $ln=$funlist{$fn};
 	print "<li class='function'><a href='$baseurl#$ln'>$fn</a></li>\n";

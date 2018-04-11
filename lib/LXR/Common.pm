@@ -529,6 +529,7 @@ C<urlargs>.>
 sub fileref {
 	my ($desc, $css, $path, $line, @args) = @_;
 
+
 	# Protect against malicious attacks
 	$path = http_encode($path);
 	$desc =~ s/&/&amp;/g;
@@ -536,8 +537,10 @@ sub fileref {
 	$desc =~ s/>/&gt;/g;
 
 	$line = ('0' x (4 - length($line))) . $line;
-
-	return	( "<a class='$css' href=\""
+	my $actstr='onMouseOver="shownotesinfo(this);"  ';
+	$actstr='' unless ( $css eq "identline");
+	my $idstr=" ";
+	return	( "<a class='$css' ".$actstr.$idstr." href=\""
 				. $config->{'virtroot'}
 				. 'source'
 				. ( exists($config->{'treename'})
@@ -675,6 +678,7 @@ sub idref {
 	#my $actstr='';
 	#onMouseOut="hidenotesinfo(this)"
 	my $actstr='onMouseOver="shownotesinfo(this);" onMouseOut="leavenotesinfo(this);" ';
+	$actstr='' unless ( $css eq "identline" or $css eq "fid");
 	return	( "<a ".$actstr."class='$css' href=\""
 				. $config->{'virtroot'}
 				. 'ident'
