@@ -1,0 +1,149 @@
+#!/usr/bin/perl -T
+
+use strict;
+use lib do { $0 =~ m{(.*)/} ? "$1/lib" : "lib" };
+
+use LXR::Common;
+use Local;
+
+my $maxdepth=6;	
+my $depth=1;
+my @callist=();
+
+
+sub cmprefs {
+	my $val;
+	$val = $$a[0] cmp $$b[0];
+	return $val if $val != 0;
+	$val = abs($$a[1]) <=> abs($$b[1]);
+	return $val if $val != 0;
+	return $val unless defined $$a[2];
+	$val = $$a[2] cmp $$b[2];
+	return $val if $val != 0;
+	return $$a[3] cmp $$b[3];
+}
+
+sub usesexpand {
+	my $id=shift;
+	
+	my $ret   = '';
+	my @uses  = $index->symreferences($id, $releaseid);
+	my @iuses = $index->symreferences(uc($id), $releaseid);
+	return '<h2>No usage found</h2>' if (scalar(@uses)+scalar(@iuses) == 0);
+
+	my %uses;	# Quich access to native-case usages, key is file
+	foreach my $i (@uses) {	# Group all usages from a file
+		my @ref = @$i;
+		$uses{$ref[0]} = [] unless defined($uses{$ref[0]});
+		push (@{$uses{$ref[0]}},  @ref[1]);
+	}
+NATIVE_CASE:	# Remove uppercase duplicates
+	foreach (@iuses) {
+		my @iref = @$_;	# Next uppercase usage
+		foreach (@{$uses{$iref[0]}}) {
+			if	(	$iref[1] == $_	# same line number
+				) {
+				next NATIVE_CASE;			# Skip, this is a duplicate
+			}
+		}
+		$iref[1] = -$iref[1];		# Flag case-isensitive definition
+		push (@uses, [ @iref ] );	# Add to list
+	}
+	@uses = sort cmprefs @uses;
+	return \@uses;
+}
+
+
+sub _parseline
+{
+	my $ok=1;
+	my ($line,$iden)=@_;
+	if ( $line=~m#$iden\s*\([^,]*?\s+[^,]*?,#){
+		$ok=0;
+	}
+	if ( $line=~m#$iden\s*\([^,]*?\s+[^,]*?\)#){
+		$ok=0;
+	}	
+	return $ok;
+}
+
+sub getindtype
+{
+	my $file=shift;
+	my $no=shift;
+	my $token=shift;
+	my $ok=0;
+	my $funname="";
+	$file="/root/lxr-2.3.1/codes/$releaseid$file";	
+	$no=~s/^0*//g;
+	open SRCFILE,"$file" or die "no such file,$file\n";
+	my $lineno=0;
+	while (my $codeline=<SRCFILE>){
+		$lineno++;
+		if ( $lineno==$no){
+			close SRCFILE;
+			$ok=_parseline($codeline,$token);
+			#print "$codeline,$token,$ok\n";
+		}
+		
+	}
+	close SRCFILE;
+
+	return $funname unless $ok;
+	open SRCFILE,"$file" or die "no such file,$file\n";	
+	my $sentence;
+	$lineno=0;
+	while (my $thisline=<SRCFILE>){
+		last if  ( $lineno==$no);
+		$lineno++;
+		#chomp $thisline;
+		unless ($thisline=~m#;\s*#){
+			$sentence.=$thisline;
+			next;
+		}
+		if ( $sentence=~m/^\s*(?:(?:inline|static)\s+){0,2}(?!else|typedef|return)\w+\s+\*?\s*(\w+)\s*\([^0]+\)\s*{/m){
+			$funname=$1;
+			
+		}
+		
+		$sentence="";
+	}
+	close SRCFILE;
+	return $funname;
+}
+
+
+sub printident {
+	
+	my $id=shift;
+	$depth++;
+	#return if (@callist> $maxdepth);
+	#return if ($depth> $maxdepth);
+	if ($depth> $maxdepth){
+		return;
+		
+	}
+	my $uses=&usesexpand($id);	
+	foreach my $u(@$uses){
+		my ($file,$no)=@$u;
+		my $callname=getindtype($file,$no,$id);
+		if ($callname){		
+			printident($callname);
+			push @callist,$callname;
+		}
+	}
+}
+
+
+
+httpinit();
+
+print "Content-type:text/plain\n\n";
+
+printident($identifier);
+push @callist,$identifier;
+my $callstr=join("->",@callist);
+
+print  $callstr,"\n";
+$depth=1;
+httpclean;
