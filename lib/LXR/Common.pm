@@ -146,7 +146,7 @@ fix by the LXR administrator.>
 
 =cut
 
-sub warning {
+sub warning {return;
 	my $msg = shift;
 	my $c = join(', line ', (caller)[ 0, 2 ]);
 	print(STDERR '[', scalar(localtime), "] warning: $c: $msg\n");
@@ -538,7 +538,7 @@ sub fileref {
 
 	$line = ('0' x (4 - length($line))) . $line;
 	my $actstr='onMouseOver="shownotesinfo(this);"  ';
-	$actstr='' unless ( $css eq "identline");
+	$actstr='' unless ( $css=~m#identline#);
 	my $idstr=" ";
 	return	( "<a class='$css' ".$actstr.$idstr." href=\""
 				. $config->{'virtroot'}
@@ -678,7 +678,7 @@ sub idref {
 	#my $actstr='';
 	#onMouseOut="hidenotesinfo(this)"
 	my $actstr='onMouseOver="shownotesinfo(this);" onMouseOut="leavenotesinfo(this);" ';
-	$actstr='' unless ( $css eq "identline" or $css eq "fid");
+	$actstr='' unless ( ($css=~m#identline#) or $css eq "fid");
 	return	( "<a ".$actstr."class='$css' href=\""
 				. $config->{'virtroot'}
 				. 'ident'
@@ -1107,6 +1107,8 @@ sub httpinit {
 		if !defined($files);
 	$LXR::Index::database_id++;		# Maybe changing database
 	$index = LXR::Index->new($config);
+	
+	
 	die 'Can\'t create Index for ' . $config->{'dbname'}
 		if !defined($index);
 
