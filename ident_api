@@ -116,20 +116,26 @@ sub getindtype
 sub printident {
 	
 	my $id=shift;
+	unshift @callist,$id;
 	$depth++;
-	#return if (@callist> $maxdepth);
-	#return if ($depth> $maxdepth);
 	if ($depth> $maxdepth){
-		return;
-		
+		my $callstr=join("->",@callist);
+		print  $callstr,"\n";
+		$depth=1;
+		@callist=( );		
+		httpclean;
+		exit 0;		
 	}
-	my $uses=&usesexpand($id);	
+
+	my $uses=&usesexpand($id);
+	
+	return unless (ref($uses) eq "ARRAY");
 	foreach my $u(@$uses){
 		my ($file,$no)=@$u;
 		my $callname=getindtype($file,$no,$id);
 		if ($callname){		
 			printident($callname);
-			push @callist,$callname;
+			#push @callist,$callname;
 		}
 	}
 }
@@ -141,9 +147,6 @@ httpinit();
 print "Content-type:text/plain\n\n";
 
 printident($identifier);
-push @callist,$identifier;
-my $callstr=join("->",@callist);
-
-print  $callstr,"\n";
-$depth=1;
 httpclean;
+exit 0;
+

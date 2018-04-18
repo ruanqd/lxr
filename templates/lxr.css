@@ -826,7 +826,6 @@
 	width:750px;
 	height:500px;
 }
-
 #noteiframe
 {
 	overflow:hidden;
@@ -834,13 +833,7 @@
 	border:1px,solid;
 	
 }
-#noteiframe1
-{
-	overflow:hidden;
-	width:100%;
-	border:1px,solid;
-	
-}
+
 #functionslist1{
 	top:0px;
 	right:0px;
